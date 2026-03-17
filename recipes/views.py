@@ -5,6 +5,7 @@ from django.contrib.auth.models import User
 from .models import Recipe
 from .forms import RecipeForm, UserRegistrationForm
 from django.http import Http404
+from django.db import connection
 
 def home(request):
     return redirect('recipe_list')
@@ -73,7 +74,24 @@ def recipe_delete(request, recipe_id):
 
 def search(request):
     q = request.GET.get('q', '')
-    results = Recipe.objects.filter(title__icontains=q, is_private=False)
+    results = []
+
+    if q:
+        # FLAW 2: SQL query is built directly from user input
+        query = f"SELECT * FROM recipes_recipe WHERE title LIKE '%{q}%' AND is_private = 0"
+
+        with connection.cursor() as cursor:
+            cursor.execute(query)
+            columns = [col[0] for col in cursor.description]
+            rows = cursor.fetchall()
+
+        for row in rows:
+            row_dict = dict(zip(columns, row))
+            results.append(Recipe(**row_dict))
+
+        # FIX: use Django ORM instead of dynamic raw SQL
+        # results = Recipe.objects.filter(title__icontains=q, is_private=False)
+
     return render(request, 'recipes/search.html', {'results': results, 'q': q})
 
 def register(request):

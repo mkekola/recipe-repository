@@ -4,8 +4,18 @@
 <h2>Search results for "{{ q }}"</h2>
 
 {% for recipe in results %}
-    <div>
-        <h3><a href="{% url 'recipe_detail' recipe.id %}">{{ recipe.title }}</a></h3>
+    <div class="recipe-item">
+        <h3>
+            <a href="{% url 'recipe_detail' recipe.id %}">{{ recipe.title }}</a>
+        </h3>
+        <p class="meta">
+            Added by <strong>{{ recipe.owner.username }}</strong> |
+            {% if recipe.is_private %}
+                <strong>Private</strong>
+            {% else %}
+                <strong>Public</strong>
+            {% endif %}
+        </p>
     </div>
 {% empty %}
     <p>No results.</p>
