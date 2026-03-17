@@ -104,3 +104,7 @@ def register(request):
     else:
         form = UserRegistrationForm()
     return render(request, 'registration/register.html', {'form': form})
+
+# FLAW 3: This view is intentionally designed to crash for testing purposes. In production, it should be removed or protected to prevent abuse.
+def crash_test(request):
+    return 1 / 0 
