@@ -4,6 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from .models import Recipe
 from .forms import RecipeForm, UserRegistrationForm
+from django.http import Http404
 
 def home(request):
     return redirect('recipe_list')
@@ -32,12 +33,22 @@ def recipe_create(request):
     return render(request, 'recipes/recipe_form.html', {'form': form})
 
 def recipe_detail(request, recipe_id):
-    recipe = get_object_or_404(Recipe, id=recipe_id)
+    recipe = get_object_or_404(Recipe, id=recipe_id) #FLAW 1: No access control check for private recipes
+
+    #Fix: private recipes should only be visible to their owner
+    #if recipe.is_private and recipe.owner != request.user:
+        #raise Http404("Recipe not found")
+    
     return render(request, 'recipes/recipe_detail.html', {'recipe': recipe})
 
 @login_required
 def recipe_edit(request, recipe_id):
-    recipe = get_object_or_404(Recipe, id=recipe_id)
+    recipe = get_object_or_404(Recipe, id=recipe_id) #FLAW 1: No access control check for editing another user's recipe
+
+    #Fix: only allow editing if the current user is the owner
+    #if recipe.owner != request.user:
+        #raise Http404("Recipe not found")
+
     if request.method == 'POST':
         form = RecipeForm(request.POST, instance=recipe)
         if form.is_valid():
@@ -49,7 +60,12 @@ def recipe_edit(request, recipe_id):
 
 @login_required
 def recipe_delete(request, recipe_id):
-    recipe = get_object_or_404(Recipe, id=recipe_id)
+    recipe = get_object_or_404(Recipe, id=recipe_id) #FLAW 1: No access control check for deleting another user's recipe
+
+    #Fix: only allow deletion if the current user is the owner
+    #if recipe.owner != request.user:
+        #raise Http404("Recipe not found")
+
     if request.method == 'POST':
         recipe.delete()
         return redirect('recipe_list')
