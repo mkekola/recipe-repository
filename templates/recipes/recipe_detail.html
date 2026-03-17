@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>{{ recipe.title }}</h2>
+
+<p class="meta">Owner: {{ recipe.owner.username }}</p>
+
+<hr>
+
+<p><strong>Ingredients:</strong></p>
+<p>{{ recipe.ingredients|linebreaks }}</p>
+
+<p><strong>Instructions:</strong></p>
+<p>{{ recipe.instructions|linebreaks }}</p>
+
+<p><strong>Private:</strong> {{ recipe.is_private }}</p>
+
+{% if user.is_authenticated %}
+    <div class="actions">
+        <a class="button-link" href="{% url 'recipe_edit' recipe.id %}">Edit</a>
+        <a class="button-link delete-button" href="{% url 'recipe_delete' recipe.id %}">Delete</a>
+    </div>
+{% endif %}
+{% endblock %}

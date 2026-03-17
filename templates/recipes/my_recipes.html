@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>My recipes</h2>
+
+{% for recipe in recipes %}
+    <div class="recipe-item">
+        <h3><a href="{% url 'recipe_detail' recipe.id %}">{{ recipe.title }}</a></h3>
+        <div class="actions">
+            <a class="button-link" href="{% url 'recipe_edit' recipe.id %}">Edit</a>
+            <a class="button-link delete-button" href="{% url 'recipe_delete' recipe.id %}">Delete</a>
+        </div>
+    </div>
+{% empty %}
+    <p>You have no recipes.</p>
+{% endfor %}
+{% endblock %}

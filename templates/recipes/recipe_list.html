@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Public recipes</h2>
+
+{% for recipe in recipes %}
+    <div class="recipe-item">
+        <h3><a href="{% url 'recipe_detail' recipe.id %}">{{ recipe.title }}</a></h3>
+        <p class="meta">By {{ recipe.owner.username }}</p>
+    </div>
+{% empty %}
+    <p>No recipes yet.</p>
+{% endfor %}
+{% endblock %}
