@@ -1,11 +1,16 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth import login
+from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
-from .models import Recipe
-from .forms import RecipeForm, UserRegistrationForm
-from django.http import Http404
+from django.contrib import messages
 from django.db import connection
+from django.http import Http404
+from django.utils import timezone
+from .forms import RecipeForm, UserRegistrationForm
+from .models import Recipe, LoginAttempt
+from datetime import timedelta
+
+
 
 def home(request):
     return redirect('recipe_list')
@@ -108,3 +113,45 @@ def register(request):
 # FLAW 3: This view is intentionally designed to crash for testing purposes. In production, it should be removed or protected to prevent abuse.
 def crash_test(request):
     return 1 / 0 
+
+def custom_login(request):
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+
+        #FLAW 4: No rate limiting or account lockout mechanism, making it vulnerable to brute-force attacks.
+        user = authenticate(request, username=username, password=password)
+
+        #FIX: block login attempts after too many failures
+        #ip_address = request.META.get('REMOTE_ADDR')
+        #attempt, _ = LoginAttempt.objects.get_or_create(username=username, ip_address=ip_address, defaults={'failed_attempts': 0})
+        #if attempt.locked_until and attempt.locked_until > timezone.now():
+            #messages.error(request, 'Account locked due to too many failed login attempts. Try again later.')
+            #return render(request, 'registration/login.html')
+
+        if user is not None:
+            login(request, user)
+
+            #FIX: reset failed login attempts on successful login
+            #if 'attempt' in locals():
+                #attempt.failed_attempts = 0
+                #attempt.locked_until = None
+                #attempt.save()
+
+            return redirect('recipe_list')
+        else:
+            messages.error(request, 'Invalid username or password')
+
+            #FIX: increment failed login attempts
+            #if 'attempt' in locals():
+                #attempt.failed_attempts += 1
+                #if attempt.failed_attempts >= 4:
+                    #attempt.locked_until = timezone.now() + timedelta(minutes=5)
+                #attempt.save()
+
+    return render(request, 'registration/login.html')
+
+def custom_logout(request):
+    if request.method == 'POST':
+        logout(request)
+    return redirect('recipe_list')

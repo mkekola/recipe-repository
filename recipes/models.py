@@ -11,3 +11,15 @@ class Recipe(models.Model):
 
     def __str__(self):
         return self.title
+    
+class LoginAttempt(models.Model):
+    username = models.CharField(max_length=150)
+    ip_address = models.GenericIPAddressField()
+    failed_attempts = models.IntegerField(default=0)
+    locked_until = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        unique_together = ('username', 'ip_address')
+
+    def __str__(self):
+        return f"{self.username} - {self.ip_address}"
