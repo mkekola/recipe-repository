@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import User
 from django.contrib import messages
 from django.db import connection
@@ -31,6 +32,16 @@ def recipe_create(request):
         if form.is_valid():
             recipe = form.save(commit=False)
             recipe.owner = request.user
+
+            #FLAW 5: Access codes are stored in plaintext, which is a security risk. In production, they should be hashed or encrypted.
+            recipe.access_code = form.cleaned_data['access_code']
+
+            #FIX: store the access code as a hash instead of plaintext
+            #if form.cleaned_data['access_code']:
+                #recipe.access_code = make_password(form.cleaned_data['access_code'])
+            #else:
+                #recipe.access_code = ''
+
             recipe.save()
             return redirect('recipe_detail', recipe.id)
     else:
@@ -58,10 +69,22 @@ def recipe_edit(request, recipe_id):
     if request.method == 'POST':
         form = RecipeForm(request.POST, instance=recipe)
         if form.is_valid():
-            form.save()
+            recipe = form.save(commit=False)
+
+            # FLAW 5: sensitive access code is stored in plaintext
+            recipe.access_code = form.cleaned_data['access_code']
+
+            # FIX: store the access code as a hash instead of plaintext
+            #if form.cleaned_data['access_code']:
+                #recipe.access_code = make_password(form.cleaned_data['access_code'])
+            #else:
+                #recipe.access_code = ''
+
+            recipe.save()
             return redirect('recipe_detail', recipe.id)
     else:
         form = RecipeForm(instance=recipe)
+
     return render(request, 'recipes/recipe_form.html', {'form': form})
 
 @login_required

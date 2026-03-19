@@ -7,6 +7,7 @@ class Recipe(models.Model):
     ingredients = models.TextField()
     instructions = models.TextField()
     is_private = models.BooleanField(default=False)
+    access_code = models.CharField(max_length=128, blank=True) # FLAW 5: Storing access codes in plaintext
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

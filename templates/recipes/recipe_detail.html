@@ -15,6 +15,14 @@
 
 <p><strong>Private:</strong> {{ recipe.is_private }}</p>
 
+<p><strong>Access code set:</strong>
+    {% if recipe.access_code %}
+        Yes
+    {% else %}
+        No
+    {% endif %}
+</p>
+
 {% if user.is_authenticated %}
     <div class="actions">
         <a class="button-link" href="{% url 'recipe_edit' recipe.id %}">Edit</a>
